@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shift Scheduling App</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 20px;
+        padding: 0;
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+      }
+
+      .form {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .form h2 {
+        margin-top: 0;
+        color: #34495e;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #2980b9;
+      }
+
+      .employee {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      .employee h3 {
+        margin: 0 0 10px;
+        color: #2c3e50;
+      }
+
+      .employee p {
+        margin: 5px 0;
+      }
+
+      .edit-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #f39c12;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .edit-button:hover {
+        background-color: #e67e22;
+      }
+
+      #employee-list {
+        margin-top: 20px;
+      }
+
+      .weekday-input {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .weekday-input label {
+        flex: 1;
+        margin-right: 10px;
+      }
+
+      .weekday-input input {
+        flex: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Shift Scheduling App</h1>
+
+    <div class="form" id="add-employee-form">
+      <h2>Add Employee</h2>
+      <form>
+        <label for="employee-name">Employee Name:</label>
+        <input type="text" id="employee-name" name="employee-name" required />
+        <button type="submit">Add Employee</button>
+      </form>
+    </div>
+
+    <div class="form" id="set-schedule-form">
+      <h2>Set Schedule</h2>
+      <form id="weekly-schedule-form">
+        <label for="schedule-employee-name">Employee Name:</label>
+        <input
+          type="text"
+          id="schedule-employee-name"
+          name="schedule-employee-name"
+          required
+        />
+        <div class="weekday-input">
+          <label for="monday-schedule">Monday:</label>
+          <input type="text" id="monday-schedule" placeholder="e.g., 9am-5pm" />
+        </div>
+        <div class="weekday-input">
+          <label for="tuesday-schedule">Tuesday:</label>
+          <input
+            type="text"
+            id="tuesday-schedule"
+            placeholder="e.g., 9am-5pm"
+          />
+        </div>
+        <div class="weekday-input">
+          <label for="wednesday-schedule">Wednesday:</label>
+          <input
+            type="text"
+            id="wednesday-schedule"
+            placeholder="e.g., 9am-5pm"
+          />
+        </div>
+        <div class="weekday-input">
+          <label for="thursday-schedule">Thursday:</label>
+          <input
+            type="text"
+            id="thursday-schedule"
+            placeholder="e.g., 9am-5pm"
+          />
+        </div>
+        <div class="weekday-input">
+          <label for="friday-schedule">Friday:</label>
+          <input type="text" id="friday-schedule" placeholder="e.g., 9am-5pm" />
+        </div>
+        <div class="weekday-input">
+          <label for="saturday-schedule">Saturday:</label>
+          <input type="text" id="saturday-schedule" placeholder="e.g., Off" />
+        </div>
+        <div class="weekday-input">
+          <label for="sunday-schedule">Sunday:</label>
+          <input type="text" id="sunday-schedule" placeholder="e.g., Off" />
+        </div>
+        <button type="submit">Set Weekly Schedule</button>
+      </form>
+    </div>
+
+    <div class="form" id="set-days-off-form">
+      <h2>Set Days Off</h2>
+      <form id="days-off-form">
+        <label for="off-employee-name">Employee Name:</label>
+        <input
+          type="text"
+          id="off-employee-name"
+          name="off-employee-name"
+          required
+        />
+        <label for="employee-days-off">Days Off (comma-separated):</label>
+        <input
+          type="text"
+          id="employee-days-off"
+          name="employee-days-off"
+          required
+        />
+        <button type="submit">Set Days Off</button>
+      </form>
+    </div>
+
+    <h2>Employee Schedules</h2>
+    <div id="employee-list"></div>
+
+    <script>
+      const employees = [];
+
+      function renderEmployees() {
+        const employeeList = document.getElementById("employee-list");
+        employeeList.innerHTML = "";
+
+        employees.forEach((employee, index) => {
+          const employeeDiv = document.createElement("div");
+          employeeDiv.className = "employee";
+          employeeDiv.innerHTML = `
+                    <h3>${employee.name}</h3>
+                    <p><strong>Weekly Schedule:</strong></p>
+                    <ul>
+                        ${Object.entries(employee.schedule)
+                          .map(([day, shift]) => `<li>${day}: ${shift}</li>`)
+                          .join("")}
+                    </ul>
+                    <p><strong>Days Off:</strong> ${employee.daysOff.join(
+                      ", "
+                    )}</p>
+                    <button class="edit-button" onclick="editEmployee(${index})">Edit</button>
+                `;
+          employeeList.appendChild(employeeDiv);
+        });
+      }
+
+      function editEmployee(index) {
+        const employee = employees[index];
+        const newSchedule = {};
+
+        for (const day of [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ]) {
+          const shift = prompt(
+            `Enter schedule for ${day}:`,
+            employee.schedule[day] || ""
+          );
+          if (shift !== null) {
+            newSchedule[day] = shift.trim();
+          }
+        }
+
+        const newDaysOff = prompt(
+          "Enter new days off (comma-separated):",
+          employee.daysOff.join(", ")
+        );
+        if (newDaysOff !== null) {
+          employee.daysOff = newDaysOff.split(",").map((d) => d.trim());
+        }
+
+        employee.schedule = newSchedule;
+        renderEmployees();
+      }
+
+      document
+        .getElementById("add-employee-form")
+        .querySelector("form")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          const name = document.getElementById("employee-name").value.trim();
+          if (name) {
+            employees.push({
+              name,
+              schedule: {},
+              daysOff: [],
+            });
+            document.getElementById("employee-name").value = "";
+            renderEmployees();
+          }
+        });
+
+      document
+        .getElementById("weekly-schedule-form")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          const name = document
+            .getElementById("schedule-employee-name")
+            .value.trim();
+          const employee = employees.find((emp) => emp.name === name);
+
+          if (employee) {
+            const schedule = {
+              Monday: document.getElementById("monday-schedule").value.trim(),
+              Tuesday: document.getElementById("tuesday-schedule").value.trim(),
+              Wednesday: document
+                .getElementById("wednesday-schedule")
+                .value.trim(),
+              Thursday: document
+                .getElementById("thursday-schedule")
+                .value.trim(),
+              Friday: document.getElementById("friday-schedule").value.trim(),
+              Saturday: document
+                .getElementById("saturday-schedule")
+                .value.trim(),
+              Sunday: document.getElementById("sunday-schedule").value.trim(),
+            };
+
+            employee.schedule = schedule;
+
+            document.getElementById("weekly-schedule-form").reset();
+            renderEmployees();
+          } else {
+            alert("Employee not found!");
+          }
+        });
+
+      document
+        .getElementById("days-off-form")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          const name = document
+            .getElementById("off-employee-name")
+            .value.trim();
+          const employee = employees.find((emp) => emp.name === name);
+
+          if (employee) {
+            const daysOff = document
+              .getElementById("employee-days-off")
+              .value.split(",")
+              .map((day) => day.trim());
+
+            employee.daysOff = daysOff;
+            document.getElementById("days-off-form").reset();
+            renderEmployees();
+          } else {
+            alert("Employee not found!");
+          }
+        });
+
+      function deleteSchedule(index) {
+        employees[index].schedule = {};
+        renderEmployees();
+      }
+
+      function deleteDaysOff(index) {
+        employees[index].daysOff = [];
+        renderEmployees();
+      }
+
+      function renderEmployees() {
+        const employeeList = document.getElementById("employee-list");
+        employeeList.innerHTML = "";
+
+        employees.forEach((employee, index) => {
+          const employeeDiv = document.createElement("div");
+          employeeDiv.className = "employee";
+          employeeDiv.innerHTML = `
+                    <h3>${employee.name}</h3>
+                    <p><strong>Weekly Schedule:</strong></p>
+                    <ul>
+                        ${Object.entries(employee.schedule)
+                          .map(([day, shift]) => `<li>${day}: ${shift}</li>`)
+                          .join("")}
+                    </ul>
+                    <button onclick="deleteSchedule(${index})">Delete Weekly Schedule</button>
+                    <p><strong></strong> ${employee.daysOff.join(", ")}</p>
+                
+                `;
+          employeeList.appendChild(employeeDiv);
+        });
+      }
+
+      renderEmployees();
+    </script>
+  </body>
+</html>
